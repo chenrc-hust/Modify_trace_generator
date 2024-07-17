@@ -45,6 +45,14 @@ while (( "$#" )); do
             NOLOG=True
             shift
             ;;
+        --milc)
+            MILC=True
+            shift
+            ;;
+        --les)
+            LES=True
+            shift
+            ;;
         -h|--help)
             echo "Usage:  $0 -i <input> [options]" >&2
             echo "        -i | --input  %  (set input to ...)" >&2

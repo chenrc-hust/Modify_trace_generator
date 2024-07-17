@@ -1,6 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import sys
+sys.path.append('/home/whb/.local/lib/python3.8/site-packages')  # 根据实际路径调整
+import matplotlib.pyplot as plt
+
+import numpy as np
+
 
 def file_len(fname):
     with open(fname) as f:
