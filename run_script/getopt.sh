@@ -5,18 +5,23 @@ INPUT_FILE=""
 OPT_INT=0
 OPT_BOOL=False
 INPUT_FILE_YES=0
-
+TRACE_TYPE=""
+OUT_NAME=""
+OUT_DIR=""
+PREF=False
+NOLOG=False
+SHU_RU=""
 # get options:
 echo "Note: '--input [args]' must be placed at the end"
 while (( "$#" )); do
     case "$1" in
         -i|--input)
-            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-				#INPUT_FILE=$2
-				INPUT_FILE="${@:2}"
-				INPUT_FILE_YES=1
-                shift 2
-				break
+            if [ -n "$2" ]; then
+                # 将所有剩余的参数作为INPUT_FILE的值
+                INPUT_FILE="${@:2}"
+                INPUT_FILE_YES=1
+                shift # 跳过 `-i` 或 `--input`
+                break
             else
                 echo "Error: Argument for $1 is missing" >&2
                 exit 1
@@ -37,6 +42,18 @@ while (( "$#" )); do
                 shift 2
             fi
             ;;
+        -s|--shuru)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                SHU_RU=$2
+                shift 2
+            fi
+            ;;
+        -d|--outdir)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                OUT_DIR=$2
+                shift 2
+            fi
+            ;;
         -p|--pref)
             PREF=True
             shift
@@ -49,8 +66,8 @@ while (( "$#" )); do
             echo "Usage:  $0 -i <input> [options]" >&2
             echo "        -i | --input  %  (set input to ...)" >&2
             echo "        -t | --type  %  (set trace type: virtual or physical)" >&2
-            echo "        -p | --pref	   (use cpu prefetcher in valgrind cache simulator)" >&2
-            echo "        --nolog		   (no redirection of standard output/error stream)" >&2
+            echo "        -p | --pref     (use cpu prefetcher in valgrind cache simulator)" >&2
+            echo "        --nolog         (no redirection of standard output/error stream)" >&2
             exit 0
             ;;
         -*|--*) # unsupported flags
@@ -65,6 +82,7 @@ while (( "$#" )); do
             ;;
     esac
 done
+
 echo "===parsed command line option==="
 echo " - input: ${INPUT_FILE}"
 echo " - type: ${TRACE_TYPE}"

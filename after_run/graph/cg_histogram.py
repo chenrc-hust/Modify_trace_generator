@@ -1,7 +1,8 @@
+import sys
 from tokenize import group
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+
 import argparse
 from itertools import accumulate
 

@@ -1,6 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import sys
+
+
+import matplotlib.pyplot as plt
+
+import numpy as np
 
 def file_len(fname):
     with open(fname) as f:

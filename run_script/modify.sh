@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# source /home/chen/speccpu2017/shrc
+
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root or with sudo privileges"
   exit
@@ -42,7 +44,8 @@ elif [ "$TRACE_TYPE" == "physical" ]; then
 		exit
 	fi
 fi
-
+# outdir = "$OUT_DIR"
+echo "$OUT_DIR"
 if [ "$PREF" = True ]; then
     echo "Valgrind CPU Prefetch: ON"
     pref="yes"
@@ -55,17 +58,17 @@ fi
 
 if [ -z "$OUT_NAME" ]; then
     logfile="trace_pref${_pref}"
-    proclog="./proclog.log"
+    proclog="$OUT_DIR/proclog.log"
 else
     logfile="$OUT_NAME"
-    proclog="./proclog_${OUT_NAME}.log"
+    proclog="$OUT_DIR/proclog_${OUT_NAME}.log"
 fi
 
 execname=$INPUT_FILE
 #proclog="./proclog.log"
 #logfile="trace_pref${_pref}"
-cglog="./$logfile.vout"
-
+cglog="$OUT_DIR/$logfile.vout"
+shuru=$SHU_RU
 if [ "$NOLOG" = True ]; then
 	echo "NOLOG on!"
 	proclog=""
@@ -76,7 +79,11 @@ start_time=`date +%s`
 
 # valgrind command
 echo "Run $execname with valgrind.."
-valgrind --tool=callgrind --simulate-wb=yes --simulate-hwpref=${pref} --log-fd=2 $execname > $proclog 2> $cglog &
+if [ -n "$shuru" ]; then
+    valgrind --tool=callgrind --simulate-wb=yes --simulate-hwpref=${pref} --log-fd=2 $execname < "$shuru" > $proclog 2> $cglog &
+else
+    valgrind --tool=callgrind --simulate-wb=yes --simulate-hwpref=${pref} --log-fd=2 $execname > $proclog 2> $cglog &
+fi
 
 #target_pid=$(ps | grep callgrind | tail -n1 | awk '{print $1}')
 target_pid=$!
@@ -114,24 +121,26 @@ runtime=$((end_time-start_time))
 echo "runtime: $runtime (sec)"
 
 if [ "$TRACE_TYPE" == "physical" ]; then
-	cat /proc/vpmap/vpmap > ./$logfile.vpmap
+	cat /proc/vpmap/vpmap > $OUT_DIR/$logfile.vpmap
 	echo 0 > /sys/module/memory/parameters/target_pid
 fi
 
 echo "Process end"
 
+# rm -rf dump.rdb
+# sudo reboot
 
 if [ "$TRACE_TYPE" == "physical" ]; then
 	echo "Make physical trace using virtual trace and V2P mapping.."
-	python3 $tooldir/after_run/mix_vpmap.py ./$logfile.vout
+    
+	python3 $tooldir/after_run/vout_to_pout.py $OUT_DIR/$logfile.vout
+    # python3 $tooldir/after_run/filter_vout.py $OUT_DIR/$logfile.pout & # hot access png
 	# python3 $tooldir/after_run/make_physical_trace_parallel.py ./$logfile.mix
-    python3 $tooldir/after_run/make_physical_trace_ts.py ./$logfile.mix
-	nline_vout=$(wc -l ./$logfile.vout | awk '{print $1}')
-	nline_pout=$(wc -l ./$logfile.pout | awk '{print $1}')
+	nline_vout=$(wc -l $OUT_DIR/$logfile.vout | awk '{print $1}')
+	nline_pout=$(wc -l $OUT_DIR/$logfile.pout | awk '{print $1}')
 	echo "# of lines ([.vout] / [.pout]): $nline_vout / $nline_pout"
-	rm ./$logfile.mix
+	# rm ./$logfile.mix
 fi
-
 # read -r -p "Do you want to plot graph? [y/N] " response
 # if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 # then

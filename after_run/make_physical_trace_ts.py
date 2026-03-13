@@ -1,7 +1,7 @@
 # If [.vout] trace file has timestamp, use this script.
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 
 def file_len(fname):
     with open(fname) as f:
